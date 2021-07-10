@@ -1,0 +1,6 @@
+{
+	"name": "VContainer.Extensions",
+	"references": [
+		"VContainer"
+	]
+}
