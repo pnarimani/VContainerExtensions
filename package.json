@@ -1,0 +1,11 @@
+{
+  "name": "com.mnarimani.vcontainer-extensions",
+  "displayName": "VContainer Extensions",
+  "version": "1.0.0",
+  "unity": "2020.2",
+  "license": "MIT",
+  "dependencies": {
+    "jp.hadashikick.vcontainer": "1.8.4"
+  }
+}
+
