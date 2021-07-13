@@ -12,7 +12,8 @@ namespace Oboto
         {
             foreach (ScriptableObjectInstaller installer in _installers)
             {
-                installer.Install(builder);
+                if (installer != null)
+                    installer.Install(builder);
             }
         }
     }
