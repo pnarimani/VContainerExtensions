@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using VContainer;
 
-namespace VContainerExtensions.Runtime
+namespace VContainer
 {
     public static class PrefabFactoryExt
     {

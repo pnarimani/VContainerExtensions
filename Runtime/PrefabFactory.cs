@@ -3,7 +3,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace VContainerExtensions.Runtime
+namespace VContainer
 {
     public class PrefabFactoryBase<TOut> where TOut : class
     {

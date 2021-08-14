@@ -2,7 +2,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace VContainerExtensions
+namespace VContainer
 {
     public class ViewPresenterContext<TView, TPresenter> : LifetimeScope where TView : MonoBehaviour
     {

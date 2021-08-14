@@ -2,7 +2,7 @@ using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace Oboto
+namespace VContainer
 {
     public class ProjectContext : LifetimeScope
     {

@@ -2,7 +2,7 @@
 using VContainer;
 using VContainer.Unity;
 
-namespace Oboto
+namespace VContainer
 {
     public abstract class ScriptableObjectInstaller : ScriptableObject, IInstaller
     {
