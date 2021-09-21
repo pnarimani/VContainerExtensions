@@ -1,135 +1,36 @@
-﻿using System;
-using JetBrains.Annotations;
+
 using UnityEngine;
-using VContainer;
 using VContainer.Unity;
-using Object = UnityEngine.Object;
 
 namespace VContainer
 {
-    public class PrefabFactoryBase<TOut> where TOut : class
-    {
-        [Inject]
-        public PrefabFactoryBase()
-        {
-        }
-
-        [CanBeNull] protected LifetimeScope CurrentScope { get; private set; }
-
-        protected MonoBehaviour Prefab { get; private set; }
-
-        [Inject]
-        public void Init([CanBeNull] LifetimeScope current, [NotNull] MonoBehaviour prefab)
-        {
-            CurrentScope = current;
-            Prefab = prefab;
-        }
-
-        protected TOut SpawnContext(LifetimeScope context, Transform parent, bool keepWorldPosition)
-        {
-            LifetimeScope clone = CurrentScope != null
-                ? CurrentScope.CreateChildFromPrefab(context)
-                : Object.Instantiate(context);
-            clone.transform.SetParent(parent, keepWorldPosition);
-            clone.Build();
-            return GetResultFromSpawnedContext(clone);
-        }
-
-        protected TOut SpawnContext(LifetimeScope context, Vector3 position, Quaternion rotation, Transform parent)
-        {
-            LifetimeScope clone = CurrentScope != null
-                ? CurrentScope.CreateChildFromPrefab(context)
-                : Object.Instantiate(context);
-            Transform t = clone.transform;
-            t.SetParent(parent);
-            t.position = position;
-            t.rotation = rotation;
-            clone.Build();
-            return GetResultFromSpawnedContext(clone);
-        }
-
-        protected TOut Spawn(Vector3 position, Quaternion rotation, Transform parent)
-        {
-            if (CurrentScope == null)
-                return Object.Instantiate(Prefab, position, rotation, parent) as TOut;
-            if (Prefab is Component comp)
-                return CurrentScope.Container.Instantiate(comp.gameObject, position, rotation, parent)
-                    .GetComponent<TOut>();
-            return CurrentScope.Container.Instantiate(Prefab, position, rotation, parent) as TOut;
-        }
-
-        protected TOut Spawn(Transform parent, bool keepWorldPosition)
-        {
-            if (CurrentScope == null)
-                return Object.Instantiate(Prefab, parent, keepWorldPosition) as TOut;
-
-            if (Prefab is Component comp)
-                return CurrentScope.Container.Instantiate(comp.gameObject, parent, keepWorldPosition)
-                    .GetComponent<TOut>();
-
-            return CurrentScope.Container.Instantiate(Prefab, parent, keepWorldPosition) as TOut;
-        }
-
-        private static TOut GetResultFromSpawnedContext(LifetimeScope spawnedContext)
-        {
-            try
-            {
-                return spawnedContext.Container.Resolve<TOut>();
-            }
-            catch (VContainerException)
-            {
-                // An exception will be thrown if the output is not registered in the LifetimeScope in the container.
-                // If the output is component, we can also try to retrieve the result using GetComponent
-                if (typeof(Component).IsAssignableFrom(typeof(TOut)))
-                    return spawnedContext.GetComponent(typeof(TOut)) as TOut;
-                // If the result is not a component, there's nothing we can do. So we rethrow the exception.
-                throw;
-            }
-        }
-    }
-
-    public class PrefabFactory<TOut> : PrefabFactoryBase<TOut> where TOut : class
+    public abstract class PrefabFactory< TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
         public TOut Create(Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
-            if (Prefab is LifetimeScope context)
-                return SpawnContext(context, position, rotation, parent);
 
-            if ((context = Prefab.GetComponent<LifetimeScope>()) != null)
-                return SpawnContext(context, position, rotation, parent);
-
-            return Spawn(position, rotation, parent);
+            {
+                return Spawn(position, rotation, parent);
+            }
         }
 
         public TOut Create(Transform parent, bool keepWorldPosition)
         {
-            if (Prefab is LifetimeScope context)
-                return SpawnContext(context, parent, keepWorldPosition);
 
-            if ((context = Prefab.GetComponent<LifetimeScope>()) != null)
-                return SpawnContext(context, parent, keepWorldPosition);
-
-            return Spawn(parent, keepWorldPosition);
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
         }
-    }
 
-    public class PrefabFactory<TParam1, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    }
+    public abstract class PrefabFactory<TParam1, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(
-            TParam1 param1,
-            Vector3 position = default,
-            Quaternion rotation = default,
-            Transform parent = default)
+        public TOut Create(TParam1 param1, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
+
             using (LifetimeScope.Enqueue(Installer.Instance))
             {
-                if (Prefab is LifetimeScope context)
-                    return SpawnContext(context, position, rotation, parent);
-
-                if ((context = Prefab.GetComponent<LifetimeScope>()) != null)
-                    return SpawnContext(context, position, rotation, parent);
-
                 return Spawn(position, rotation, parent);
             }
         }
@@ -137,14 +38,9 @@ namespace VContainer
         public TOut Create(TParam1 param1, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
+
             using (LifetimeScope.Enqueue(Installer.Instance))
             {
-                if (Prefab is LifetimeScope context)
-                    return SpawnContext(context, parent, keepWorldPosition);
-
-                if ((context = Prefab.GetComponent<LifetimeScope>()) != null)
-                    return SpawnContext(context, parent, keepWorldPosition);
-
                 return Spawn(parent, keepWorldPosition);
             }
         }
@@ -160,7 +56,520 @@ namespace VContainer
 
             public void Install(IContainerBuilder builder)
             {
-                builder.RegisterInstance(Param1);
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TParam3, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+            public TParam3 Param3;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param3).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+            public TParam3 Param3;
+            public TParam4 Param4;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param3).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param4).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+            public TParam3 Param3;
+            public TParam4 Param4;
+            public TParam5 Param5;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param3).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param4).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param5).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+            public TParam3 Param3;
+            public TParam4 Param4;
+            public TParam5 Param5;
+            public TParam6 Param6;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param3).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param4).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param5).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param6).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+            Installer.Instance.Param7 = param7;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+            Installer.Instance.Param7 = param7;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+            public TParam3 Param3;
+            public TParam4 Param4;
+            public TParam5 Param5;
+            public TParam6 Param6;
+            public TParam7 Param7;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param3).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param4).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param5).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param6).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param7).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+            Installer.Instance.Param7 = param7;
+            Installer.Instance.Param8 = param8;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+            Installer.Instance.Param7 = param7;
+            Installer.Instance.Param8 = param8;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+            public TParam3 Param3;
+            public TParam4 Param4;
+            public TParam5 Param5;
+            public TParam6 Param6;
+            public TParam7 Param7;
+            public TParam8 Param8;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param3).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param4).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param5).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param6).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param7).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param8).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+            Installer.Instance.Param7 = param7;
+            Installer.Instance.Param8 = param8;
+            Installer.Instance.Param9 = param9;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+            Installer.Instance.Param7 = param7;
+            Installer.Instance.Param8 = param8;
+            Installer.Instance.Param9 = param9;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+            public TParam3 Param3;
+            public TParam4 Param4;
+            public TParam5 Param5;
+            public TParam6 Param6;
+            public TParam7 Param7;
+            public TParam8 Param8;
+            public TParam9 Param9;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param3).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param4).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param5).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param6).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param7).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param8).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param9).AsImplementedInterfaces().AsSelf();
+            }
+        }
+    }
+    public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10, TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, TParam10 param10, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+            Installer.Instance.Param7 = param7;
+            Installer.Instance.Param8 = param8;
+            Installer.Instance.Param9 = param9;
+            Installer.Instance.Param10 = param10;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, TParam10 param10, Transform parent, bool keepWorldPosition)
+        {
+            Installer.Instance.Param1 = param1;
+            Installer.Instance.Param2 = param2;
+            Installer.Instance.Param3 = param3;
+            Installer.Instance.Param4 = param4;
+            Installer.Instance.Param5 = param5;
+            Installer.Instance.Param6 = param6;
+            Installer.Instance.Param7 = param7;
+            Installer.Instance.Param8 = param8;
+            Installer.Instance.Param9 = param9;
+            Installer.Instance.Param10 = param10;
+
+            using (LifetimeScope.Enqueue(Installer.Instance))
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+            public TParam1 Param1;
+            public TParam2 Param2;
+            public TParam3 Param3;
+            public TParam4 Param4;
+            public TParam5 Param5;
+            public TParam6 Param6;
+            public TParam7 Param7;
+            public TParam8 Param8;
+            public TParam9 Param9;
+            public TParam10 Param10;
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+                builder.RegisterInstance(Param1).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param2).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param3).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param4).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param5).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param6).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param7).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param8).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param9).AsImplementedInterfaces().AsSelf();
+                builder.RegisterInstance(Param10).AsImplementedInterfaces().AsSelf();
             }
         }
     }

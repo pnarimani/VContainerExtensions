@@ -1,0 +1,114 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+using UnityEngine;
+using VContainer.Unity;
+
+namespace VContainer
+{
+<#
+    for (int paramCount = 0; paramCount <= 10; paramCount++)
+    {
+        var range = Enumerable.Range(0, paramCount);
+        var tParams = string.Join(", ", range.Select(x => "TParam" + (x + 1)));
+        if (!string.IsNullOrEmpty(tParams))
+            tParams += ",";
+        var namedParams = string.Join(", ", range.Select(x => "TParam" + (x + 1) + " param" + (x + 1)));
+        var separator = paramCount > 0 ? ", " : "";
+
+        var names = string.Join(", ", range.Select(x => "param" + (x + 1)));
+#>
+    public abstract class PrefabFactory<<#= tParams #> TOut> : PrefabFactoryBase<TOut> where TOut : class
+    {
+        public TOut Create(<#= namedParams + separator #>Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        {
+<#
+        for (int i = 0; i < paramCount; i++)
+        {
+#>
+            Installer.Instance.Param<#= i + 1 #> = param<#= i + 1 #>;
+<#
+        }
+#>
+
+<#
+        if (paramCount > 0)
+        {
+#>
+            using (LifetimeScope.Enqueue(Installer.Instance))
+<#
+        }
+#>
+            {
+                return Spawn(position, rotation, parent);
+            }
+        }
+
+        public TOut Create(<#= namedParams + separator #>Transform parent, bool keepWorldPosition)
+        {
+<#
+        for (int i = 0; i < paramCount; i++)
+        {
+#>
+            Installer.Instance.Param<#= i + 1 #> = param<#= i + 1 #>;
+<#
+        }
+#>
+
+<#
+        if (paramCount > 0)
+        {
+#>
+            using (LifetimeScope.Enqueue(Installer.Instance))
+<#
+        }
+#>
+            {
+                return Spawn(parent, keepWorldPosition);
+            }
+        }
+
+<#
+        if (paramCount > 0)
+        {
+#>
+        private class Installer : IInstaller
+        {
+            public static readonly Installer Instance = new Installer();
+<#
+            for (int i = 0; i < paramCount; i++)
+            {
+#>
+            public TParam<#= i + 1 #> Param<#= i + 1 #>;
+<#
+            }
+#>
+
+            private Installer()
+            {
+            }
+
+            public void Install(IContainerBuilder builder)
+            {
+<#
+            for (int i = 0; i < paramCount; i++)
+            {
+#>
+                builder.RegisterInstance(Param<#= i + 1 #>).AsImplementedInterfaces().AsSelf();
+<#
+            }
+#>
+            }
+        }
+<#
+        }
+#>
+    }
+<#
+    }
+#>
+}
