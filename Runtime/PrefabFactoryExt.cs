@@ -1,15 +1,13 @@
 ﻿using UnityEngine;
-using VContainer;
 
 namespace VContainer
 {
     public static class PrefabFactoryExt
     {
-        public static void RegisterPrefabFactory<TOut, TFactory>(this IContainerBuilder builder, MonoBehaviour prefab)
+        public static RegistrationBuilder RegisterPrefabFactory<TOut, TFactory>(this IContainerBuilder builder, MonoBehaviour prefab)
             where TFactory : PrefabFactoryBase<TOut> where TOut : class
         {
-            builder.Register<TFactory>(Lifetime.Scoped)
-                .WithParameter("prefab", prefab);
+            return builder.Register<TFactory>(Lifetime.Scoped).WithParameter("prefab", prefab);;
         }
     }
 }

@@ -11,29 +11,31 @@ namespace VContainer
         {
         }
 
-        [CanBeNull] private LifetimeScope _currentScope;
-        [CanBeNull] private LifetimeScope _contextOnPrefab;
-        private MonoBehaviour _prefab;
+        [CanBeNull] protected LifetimeScope CurrentScope;
+        [CanBeNull] protected LifetimeScope ContextOnPrefab;
+        [CanBeNull] protected MonoBehaviour Prefab;
 
         [Inject]
-        public void Init([CanBeNull] LifetimeScope current, [NotNull] MonoBehaviour prefab)
+        public void Init([CanBeNull] LifetimeScope current, [CanBeNull] MonoBehaviour prefab)
         {
-            _currentScope = current;
-            _prefab = prefab;
+            CurrentScope = current;
+            Prefab = prefab;
 
-            if (_prefab is LifetimeScope context)
-                _contextOnPrefab = context;
-            else if ((context = _prefab.GetComponent<LifetimeScope>()) != null)
-                _contextOnPrefab = context;
+            if (Prefab is LifetimeScope context)
+                ContextOnPrefab = context;
+            else if (Prefab != null && (context = Prefab.GetComponent<LifetimeScope>()) != null)
+                ContextOnPrefab = context;
+            else
+                ContextOnPrefab = null;
         }
 
         protected TOut Spawn(Vector3 position, Quaternion rotation, Transform parent)
         {
-            if (_contextOnPrefab != null)
+            if (ContextOnPrefab != null)
             {
-                LifetimeScope clone = _currentScope != null
-                    ? _currentScope.CreateChildFromPrefab(_contextOnPrefab)
-                    : Object.Instantiate(_contextOnPrefab);
+                LifetimeScope clone = CurrentScope != null
+                    ? CurrentScope.CreateChildFromPrefab(ContextOnPrefab)
+                    : Object.Instantiate(ContextOnPrefab);
 
                 Transform t = clone.transform;
                 t.SetParent(parent);
@@ -43,34 +45,34 @@ namespace VContainer
                 return GetResultFromSpawnedContext(clone);
             }
 
-            if (_currentScope == null)
-                return Object.Instantiate(_prefab, position, rotation, parent) as TOut;
-            if (_prefab is Component comp)
-                return _currentScope.Container.Instantiate(comp.gameObject, position, rotation, parent)
+            if (CurrentScope == null)
+                return Object.Instantiate(Prefab, position, rotation, parent) as TOut;
+            if (Prefab is Component comp)
+                return CurrentScope.Container.Instantiate(comp.gameObject, position, rotation, parent)
                     .GetComponent<TOut>();
-            return _currentScope.Container.Instantiate(_prefab, position, rotation, parent) as TOut;
+            return CurrentScope.Container.Instantiate(Prefab, position, rotation, parent) as TOut;
         }
 
         protected TOut Spawn(Transform parent, bool keepWorldPosition)
         {
-            if (_contextOnPrefab != null)
+            if (ContextOnPrefab != null)
             {
-                LifetimeScope clone = _currentScope != null
-                    ? _currentScope.CreateChildFromPrefab(_contextOnPrefab)
-                    : Object.Instantiate(_contextOnPrefab);
+                LifetimeScope clone = CurrentScope != null
+                    ? CurrentScope.CreateChildFromPrefab(ContextOnPrefab)
+                    : Object.Instantiate(ContextOnPrefab);
                 clone.transform.SetParent(parent, keepWorldPosition);
                 clone.Build();
                 return GetResultFromSpawnedContext(clone);
             }
 
-            if (_currentScope == null)
-                return Object.Instantiate(_prefab, parent, keepWorldPosition) as TOut;
+            if (CurrentScope == null)
+                return Object.Instantiate(Prefab, parent, keepWorldPosition) as TOut;
 
-            if (_prefab is Component comp)
-                return _currentScope.Container.Instantiate(comp.gameObject, parent, keepWorldPosition)
+            if (Prefab is Component comp)
+                return CurrentScope.Container.Instantiate(comp.gameObject, parent, keepWorldPosition)
                     .GetComponent<TOut>();
 
-            return _currentScope.Container.Instantiate(_prefab, parent, keepWorldPosition) as TOut;
+            return CurrentScope.Container.Instantiate(Prefab, parent, keepWorldPosition) as TOut;
         }
 
         private static TOut GetResultFromSpawnedContext(LifetimeScope spawnedContext)
@@ -81,10 +83,20 @@ namespace VContainer
             }
             catch (VContainerException)
             {
-                // An exception will be thrown if the output is not registered in the LifetimeScope in the container.
+                // An exception will be thrown if the output is not registered in the LifetimeScope in the spawned container.
                 // If the output is component, we can also try to retrieve the result using GetComponent
                 if (typeof(Component).IsAssignableFrom(typeof(TOut)))
-                    return spawnedContext.GetComponent(typeof(TOut)) as TOut;
+                {
+                    Component component = spawnedContext.GetComponent(typeof(TOut));
+                    
+                    // If we could not find the component on the GameObject, we need to throw the exception to let the user know there's a problem.
+                    if (component == null)
+                        throw;
+                    
+                    // We cannot use c-style cast because compiler doesn't know that component is type of TOut.
+                    return component as TOut;
+                }
+
                 // If the result is not a component, there's nothing we can do. So we rethrow the exception.
                 throw;
             }

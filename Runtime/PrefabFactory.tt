@@ -24,7 +24,7 @@ namespace VContainer
 #>
     public abstract class PrefabFactory<<#= tParams #> TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(<#= namedParams + separator #>Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(<#= namedParams + separator #>Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
 <#
         for (int i = 0; i < paramCount; i++)
@@ -48,7 +48,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(<#= namedParams + separator #>Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(<#= namedParams + separator #>Transform parent, bool keepWorldPosition)
         {
 <#
         for (int i = 0; i < paramCount; i++)

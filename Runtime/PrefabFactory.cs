@@ -1,4 +1,4 @@
-
+﻿
 using UnityEngine;
 using VContainer.Unity;
 
@@ -6,7 +6,7 @@ namespace VContainer
 {
     public abstract class PrefabFactory< TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
 
             {
@@ -14,7 +14,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(Transform parent, bool keepWorldPosition)
         {
 
             {
@@ -25,7 +25,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
 
@@ -35,7 +35,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
 
@@ -62,7 +62,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -73,7 +73,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -103,7 +103,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TParam3, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -115,7 +115,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -148,7 +148,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -161,7 +161,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -197,7 +197,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -211,7 +211,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -250,7 +250,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -265,7 +265,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -307,7 +307,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -323,7 +323,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -368,7 +368,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -385,7 +385,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -433,7 +433,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -451,7 +451,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -502,7 +502,7 @@ namespace VContainer
     }
     public abstract class PrefabFactory<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9, TParam10, TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, TParam10 param10, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, TParam10 param10, Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
@@ -521,7 +521,7 @@ namespace VContainer
             }
         }
 
-        public TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, TParam10 param10, Transform parent, bool keepWorldPosition)
+        public virtual TOut Create(TParam1 param1, TParam2 param2, TParam3 param3, TParam4 param4, TParam5 param5, TParam6 param6, TParam7 param7, TParam8 param8, TParam9 param9, TParam10 param10, Transform parent, bool keepWorldPosition)
         {
             Installer.Instance.Param1 = param1;
             Installer.Instance.Param2 = param2;
