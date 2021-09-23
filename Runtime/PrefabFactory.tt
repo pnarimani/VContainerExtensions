@@ -5,8 +5,10 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ output extension=".cs" #>
 
+using System;
 using UnityEngine;
 using VContainer.Unity;
+using System.Collections.Generic;
 
 namespace VContainer
 {
@@ -21,54 +23,112 @@ namespace VContainer
         var separator = paramCount > 0 ? ", " : "";
 
         var names = string.Join(", ", range.Select(x => "param" + (x + 1)));
+        var poolable = paramCount > 0 ? $"IPoolable<{tParams.Substring(0, tParams.Length - 1)}>" : "IPoolable";
 #>
     public abstract class PrefabFactory<<#= tParams #> TOut> : PrefabFactoryBase<TOut> where TOut : class
     {
         public virtual TOut Create(<#= namedParams + separator #>Vector3 position = default, Quaternion rotation = default, Transform parent = default)
         {
 <#
-        for (int i = 0; i < paramCount; i++)
+        if (paramCount > 0)
         {
 #>
-            Installer.Instance.Param<#= i + 1 #> = param<#= i + 1 #>;
+            IDisposable extraInstallerHandle = RegisterParameters(<#= names #>);
+            try
+            {
 <#
         }
 #>
-
+                (LifetimeScope scope, TOut output) = Spawn(position, rotation, parent, out var despawn);
+                CallPoolSpawnMethod(scope, output, despawn<#= separator + names #>);
+                return output;
 <#
         if (paramCount > 0)
         {
 #>
-            using (LifetimeScope.Enqueue(Installer.Instance))
+            }
+            finally
+            {
+                extraInstallerHandle?.Dispose();
+            }
 <#
         }
 #>
-            {
-                return Spawn(position, rotation, parent);
-            }
         }
 
         public virtual TOut Create(<#= namedParams + separator #>Transform parent, bool keepWorldPosition)
         {
 <#
-        for (int i = 0; i < paramCount; i++)
+        if (paramCount > 0)
         {
 #>
-            Installer.Instance.Param<#= i + 1 #> = param<#= i + 1 #>;
+            IDisposable extraInstallerHandle = RegisterParameters(<#= names #>);
+            try
+            {
 <#
         }
 #>
-
+                (LifetimeScope scope, TOut output) = Spawn(parent, keepWorldPosition, out var despawn);
+                CallPoolSpawnMethod(scope, output, despawn<#= separator + names #>);
+                return output;
 <#
         if (paramCount > 0)
         {
 #>
-            using (LifetimeScope.Enqueue(Installer.Instance))
+            }
+            finally
+            {
+                extraInstallerHandle?.Dispose();
+            }
 <#
         }
 #>
+        }
+
+        private void CallPoolSpawnMethod(LifetimeScope spawnedScope, TOut output, Action despawn<#= separator + namedParams #>)
+        {
+            if (PoolSettings == null) return;
+
+            // If the spawned prefab has a scope, we want to find every instance of object which implements IPoolable and call OnPoolSpawned on that. 
+            if (spawnedScope != null)
             {
-                return Spawn(parent, keepWorldPosition);
+                // It is possible that the output was retrieved by GetComponent and was not registered in the container.
+                // We need to make sure that IPoolable functions are called on the output 100% of the time.
+                bool outputIsCalled = false;
+
+                // This will resolve a list of all the objects which have been registered and have IPoolable implemented. 
+                var poolables = spawnedScope.Container.Resolve<IReadOnlyCollection<<#= poolable #>>>();
+                foreach (var p in poolables)
+                {
+                    try
+                    {
+                        p.OnPoolSpawn(despawn<#= separator + names #>);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
+
+                    if (p.Equals(output))
+                    {
+                        outputIsCalled = true;
+                    }
+                }
+
+                if (outputIsCalled)
+                    return;
+            }
+
+            if (output is <#= poolable #> outputPoolable)
+            {
+                try
+                {
+                    outputPoolable.OnPoolSpawn(despawn<#= separator + names #>);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
             }
         }
 
@@ -76,6 +136,26 @@ namespace VContainer
         if (paramCount > 0)
         {
 #>
+
+        private IDisposable RegisterParameters(<#= namedParams #>)
+        {
+            // We don't want to include extra parameters when object is pooled because these parameters will be passed using IPoolable functions.
+            if (PoolSettings == null)
+            {
+<#
+            for (int i = 0; i < paramCount; i++)
+            {
+#>
+                Installer.Instance.Param<#= i + 1 #> = param<#= i + 1 #>;
+<#
+            }
+#>
+                return LifetimeScope.Enqueue(Installer.Instance);
+            }
+
+            return null;
+        }
+
         private class Installer : IInstaller
         {
             public static readonly Installer Instance = new Installer();
