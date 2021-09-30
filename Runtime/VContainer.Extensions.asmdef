@@ -1,6 +1,24 @@
 {
-	"name": "VContainer.Extensions",
-	"references": [
-		"VContainer"
-	]
+    "name": "VContainer.Extensions",
+    "rootNamespace": "",
+    "references": [
+        "VContainer",
+        "MessagePipe",
+        "MessagePipe.VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.cysharp.messagepipe",
+            "expression": "",
+            "define": "MESSAGE_PIPE"
+        }
+    ],
+    "noEngineReferences": false
 }
